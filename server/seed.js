@@ -1,0 +1,62 @@
+export const seedCategories = [
+  { name: '家常热菜', emoji: '🍲', sort_order: 1 },
+  { name: '汤羹粥品', emoji: '🥣', sort_order: 2 },
+  { name: '面食米粉', emoji: '🍜', sort_order: 3 },
+  { name: '快手简餐', emoji: '🍳', sort_order: 4 },
+  { name: '早餐早点', emoji: '🥐', sort_order: 5 },
+  { name: '火锅烧烤', emoji: '🔥', sort_order: 6 },
+  { name: '凉菜小吃', emoji: '🥗', sort_order: 7 },
+]
+
+export const seedDishes = [
+  { category: '家常热菜', name: '番茄炒蛋', note: '酸甜下饭，十分钟出锅' },
+  { category: '家常热菜', name: '红烧肉', note: '肥瘦相间，周末犒劳自己' },
+  { category: '家常热菜', name: '青椒肉丝', note: '经典下饭，配米饭刚刚好' },
+  { category: '家常热菜', name: '麻婆豆腐', note: '麻辣鲜香，一碗米饭不够' },
+  { category: '家常热菜', name: '糖醋排骨', note: '外酥里嫩，解馋首选' },
+  { category: '家常热菜', name: '蒜蓉西兰花', note: '清爽配菜，解腻必备' },
+  { category: '家常热菜', name: '鱼香肉丝', note: '咸甜微辣，百吃不厌' },
+  { category: '家常热菜', name: '宫保鸡丁', note: '花生脆香，鸡肉嫩滑' },
+  { category: '家常热菜', name: '土豆炖牛腩', note: '软糯入味，适合慢慢炖' },
+  { category: '家常热菜', name: '蒜苔炒肉', note: '时令快炒，很香' },
+
+  { category: '汤羹粥品', name: '番茄蛋花汤', note: '清淡开胃，晚饭很合适' },
+  { category: '汤羹粥品', name: '紫菜蛋花汤', note: '三分钟搞定' },
+  { category: '汤羹粥品', name: '皮蛋瘦肉粥', note: '早餐或夜宵都舒服' },
+  { category: '汤羹粥品', name: '玉米排骨汤', note: '甜鲜暖胃' },
+  { category: '汤羹粥品', name: '小米南瓜粥', note: '养胃，适合晚上吃少' },
+  { category: '汤羹粥品', name: '酸辣汤', note: '下雨天特别想喝' },
+
+  { category: '面食米粉', name: '番茄鸡蛋面', note: '家常面的天花板' },
+  { category: '面食米粉', name: '炸酱面', note: '酱香浓郁，配黄瓜丝' },
+  { category: '面食米粉', name: '阳春面', note: '清汤寡水也安心' },
+  { category: '面食米粉', name: '牛肉拉面', note: '想吃点实在的时候' },
+  { category: '面食米粉', name: '炒河粉', note: '镬气很重要' },
+  { category: '面食米粉', name: '担担面', note: '麻辣过瘾' },
+  { category: '面食米粉', name: '馄饨', note: '一碗热汤，什么都好了' },
+
+  { category: '快手简餐', name: '蛋炒饭', note: '剩饭救星' },
+  { category: '快手简餐', name: '火腿三明治', note: '懒得开火的日子' },
+  { category: '快手简餐', name: '香肠炒青菜', note: '两样食材就能开饭' },
+  { category: '快手简餐', name: '酱油拌面', note: '五分钟，真香' },
+  { category: '快手简餐', name: '煎饺', note: '速冻饺子也能很满足' },
+  { category: '快手简餐', name: '电饭煲焖饭', note: '丢进去等着就行' },
+
+  { category: '早餐早点', name: '豆浆油条', note: '经典早市组合' },
+  { category: '早餐早点', name: '煎蛋吐司', note: '简单但有效' },
+  { category: '早餐早点', name: '小笼包', note: '周末奖励' },
+  { category: '早餐早点', name: '燕麦牛奶', note: '清淡开工' },
+  { category: '早餐早点', name: '茶叶蛋配粥', note: '暖乎乎出门' },
+
+  { category: '火锅烧烤', name: '番茄锅', note: '一个人也能开锅' },
+  { category: '火锅烧烤', name: '辣味火锅', note: '想出汗的时候' },
+  { category: '火锅烧烤', name: '羊肉串', note: '配一杯冰饮料' },
+  { category: '火锅烧烤', name: '烤茄子', note: '蒜香，很下饭' },
+  { category: '火锅烧烤', name: '韩式烤肉', note: '周末放纵餐' },
+
+  { category: '凉菜小吃', name: '拍黄瓜', note: '开胃小菜' },
+  { category: '凉菜小吃', name: '凉拌木耳', note: '爽脆解腻' },
+  { category: '凉菜小吃', name: '皮蛋豆腐', note: '冰箱里常备' },
+  { category: '凉菜小吃', name: '卤蛋', note: '零食也是菜' },
+  { category: '凉菜小吃', name: '糖拌西红柿', note: '夏天必吃' },
+]
