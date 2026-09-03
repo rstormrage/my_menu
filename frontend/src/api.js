@@ -25,17 +25,20 @@ async function request(path, options = {}) {
 
 const remoteApi = {
   login: (password) => request('/api/login', { method: 'POST', body: { password } }),
-  categories: () => request('/api/categories'),
+  categories: (kind = 'home') => request(`/api/categories?kind=${kind}`),
   addCategory: (body) => request('/api/categories', { method: 'POST', body }),
   deleteCategory: (id) => request(`/api/categories/${id}`, { method: 'DELETE' }),
   dishes: (categoryId) =>
     request(categoryId ? `/api/dishes?categoryId=${categoryId}` : '/api/dishes'),
   addDish: (body) => request('/api/dishes', { method: 'POST', body }),
   deleteDish: (id) => request(`/api/dishes/${id}`, { method: 'DELETE' }),
-  today: () => request('/api/today'),
-  pickToday: (dish_id) => request('/api/today', { method: 'POST', body: { dish_id } }),
-  randomToday: (category_id) =>
-    request('/api/today/random', { method: 'POST', body: { category_id } }),
+  restaurants: (categoryId) =>
+    request(categoryId ? `/api/restaurants?categoryId=${categoryId}` : '/api/restaurants'),
+  addRestaurant: (body) => request('/api/restaurants', { method: 'POST', body }),
+  deleteRestaurant: (id) => request(`/api/restaurants/${id}`, { method: 'DELETE' }),
+  today: (mode = 'home') => request(`/api/today?mode=${mode}`),
+  pickToday: (body) => request('/api/today', { method: 'POST', body }),
+  randomToday: (body) => request('/api/today/random', { method: 'POST', body }),
 }
 
 function useLocalStorage() {

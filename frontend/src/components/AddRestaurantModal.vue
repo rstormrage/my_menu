@@ -1,10 +1,10 @@
 <template>
   <div class="mask" @click.self="$emit('close')">
     <form class="sheet wide" @submit.prevent="save">
-      <h2>添加菜品</h2>
+      <h2>添加馆子</h2>
       <label>
-        菜名
-        <input v-model="name" maxlength="40" placeholder="比如：蒜蓉生菜" required />
+        馆子名
+        <input v-model="name" maxlength="40" placeholder="比如：巷口烧烤" required />
       </label>
       <label>
         分类
@@ -16,17 +16,27 @@
         </select>
       </label>
       <label>
-        备注（可选）
-        <input v-model="note" maxlength="80" placeholder="想吃的理由、口味提示…" />
+        这家好吃的菜
+        <input v-model="hits" maxlength="80" placeholder="比如：羊肉串、烤茄子、韭菜" />
       </label>
       <label>
-        食谱
-        <textarea v-model="recipe" rows="4" maxlength="400" placeholder="简要写清步骤，比如焯水、调味、炒多久" />
+        离家距离（公里）
+        <input v-model="distanceKm" type="number" min="0" step="0.1" placeholder="比如：0.8" required />
+      </label>
+      <label>
+        人均花费（元）
+        <input v-model="cost" type="number" min="0" step="1" placeholder="比如：60" required />
+      </label>
+      <label>
+        备注（可选）
+        <input v-model="note" maxlength="80" placeholder="排队、营业时间、适合几个人…" />
       </label>
       <p v-if="error" class="err">{{ error }}</p>
       <div class="row">
         <button type="button" class="btn ghost" @click="$emit('close')">取消</button>
-        <button type="submit" class="btn primary" :disabled="saving">{{ saving ? '保存中…' : '加入菜单' }}</button>
+        <button type="submit" class="btn primary" :disabled="saving">
+          {{ saving ? '保存中…' : '加入名单' }}
+        </button>
       </div>
     </form>
   </div>
@@ -44,8 +54,10 @@ const props = defineProps({
 const emit = defineEmits(['close', 'saved'])
 
 const name = ref('')
+const hits = ref('')
 const note = ref('')
-const recipe = ref('')
+const distanceKm = ref('')
+const cost = ref('')
 const categoryId = ref(props.defaultCategoryId || '')
 const saving = ref(false)
 const error = ref('')
@@ -54,11 +66,13 @@ async function save() {
   error.value = ''
   saving.value = true
   try {
-    await api.addDish({
+    await api.addRestaurant({
       name: name.value,
+      hits: hits.value,
       note: note.value,
-      recipe: recipe.value,
       category_id: Number(categoryId.value),
+      distance_km: Number(distanceKm.value),
+      cost: Number(cost.value),
     })
     emit('saved')
   } catch (err) {

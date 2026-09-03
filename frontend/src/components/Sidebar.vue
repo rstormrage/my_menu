@@ -4,14 +4,14 @@
       <span class="mark">筷</span>
       <div>
         <strong>我的菜单</strong>
-        <small>按心情挑，或交给运气</small>
+        <small>{{ subtitle }}</small>
       </div>
     </div>
 
     <nav>
       <button class="cat" :class="{ active: selectedId == null }" @click="$emit('select', null)">
         <span class="emoji">🍽️</span>
-        <span class="name">全部菜品</span>
+        <span class="name">{{ allLabel }}</span>
       </button>
 
       <button
@@ -32,7 +32,8 @@
       </button>
     </nav>
 
-    <button class="add-cat" @click="$emit('add')">＋ 新分类</button>
+    <button class="add-cat" @click="$emit('add')">{{ addLabel }}</button>
+    <button class="mode-back" @click="$emit('switch-mode')">← 换个计划</button>
   </aside>
 </template>
 
@@ -40,9 +41,12 @@
 defineProps({
   categories: { type: Array, default: () => [] },
   selectedId: { type: Number, default: null },
+  subtitle: { type: String, default: '按心情挑，或交给运气' },
+  allLabel: { type: String, default: '全部菜品' },
+  addLabel: { type: String, default: '＋ 新分类' },
 })
 
-defineEmits(['select', 'add', 'remove'])
+defineEmits(['select', 'add', 'remove', 'switch-mode'])
 </script>
 
 <style scoped>
@@ -159,6 +163,21 @@ nav {
 
 .add-cat:hover {
   border-color: #d4532b;
+  color: #fff;
+}
+
+.mode-back {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: #c9b89a;
+  padding: 8px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.mode-back:hover {
   color: #fff;
 }
 </style>

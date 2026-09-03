@@ -23,6 +23,9 @@
 import { ref } from 'vue'
 import { api } from '../api.js'
 
+const props = defineProps({
+  kind: { type: String, default: 'home' },
+})
 const emit = defineEmits(['close', 'saved'])
 const name = ref('')
 const emoji = ref('🍽️')
@@ -33,7 +36,7 @@ async function save() {
   error.value = ''
   saving.value = true
   try {
-    await api.addCategory({ name: name.value, emoji: emoji.value })
+    await api.addCategory({ name: name.value, emoji: emoji.value, kind: props.kind })
     emit('saved')
   } catch (err) {
     error.value = err.message

@@ -1,34 +1,38 @@
 <template>
   <section class="panel">
     <div class="panel-head">
-      <h2>{{ category ? `${category.emoji} ${category.name}` : '全部菜品' }}</h2>
-      <span>{{ dishes.length }} 道</span>
+      <h2>{{ category ? `${category.emoji} ${category.name}` : '全部馆子' }}</h2>
+      <span>{{ restaurants.length }} 家</span>
     </div>
 
-    <div v-if="!dishes.length" class="empty">
-      <p>这一栏还是空的。</p>
-      <button class="btn primary" @click="$emit('add')">先加一道菜</button>
+    <div v-if="!restaurants.length" class="empty">
+      <p>还没有馆子。</p>
+      <button class="btn primary" @click="$emit('add')">先加一家馆子</button>
     </div>
 
     <div v-else class="grid">
       <article
-        v-for="dish in dishes"
-        :key="dish.id"
+        v-for="shop in restaurants"
+        :key="shop.id"
         class="card"
-        :class="{ chosen: todayId === dish.id }"
+        :class="{ chosen: todayId === shop.id }"
         role="button"
         tabindex="0"
-        @click="$emit('choose', dish)"
-        @keydown.enter="$emit('choose', dish)"
+        @click="$emit('choose', shop)"
+        @keydown.enter="$emit('choose', shop)"
       >
         <div class="card-top">
-          <span class="chip">{{ dish.category_emoji }} {{ dish.category_name }}</span>
-          <button class="icon-btn" title="删除" @click.stop="$emit('remove', dish)">删除</button>
+          <span class="chip">{{ shop.category_emoji }} {{ shop.category_name }}</span>
+          <button class="icon-btn" title="删除" @click.stop="$emit('remove', shop)">删除</button>
         </div>
-        <h3>{{ dish.name }}</h3>
-        <p>{{ dish.note || '点一下，今天就吃这个' }}</p>
-        <p v-if="dish.recipe" class="recipe">食谱：{{ dish.recipe }}</p>
-        <em v-if="todayId === dish.id">今日已选</em>
+        <h3>{{ shop.name }}</h3>
+        <p class="hits">必点：{{ shop.hits || '还没记下好吃的菜' }}</p>
+        <div class="meta">
+          <span>离家 {{ formatDistance(shop.distance_km) }}</span>
+          <span>人均约 ¥{{ shop.cost }}</span>
+        </div>
+        <p v-if="shop.note" class="note">{{ shop.note }}</p>
+        <em v-if="todayId === shop.id">今日已选</em>
       </article>
     </div>
   </section>
@@ -36,12 +40,19 @@
 
 <script setup>
 defineProps({
-  dishes: { type: Array, default: () => [] },
+  restaurants: { type: Array, default: () => [] },
   todayId: { type: Number, default: null },
   category: { type: Object, default: null },
 })
 
 defineEmits(['choose', 'remove', 'add'])
+
+function formatDistance(value) {
+  const km = Number(value)
+  if (!Number.isFinite(km)) return '未知'
+  if (km < 1) return `${Math.round(km * 1000)} 米`
+  return `${km} 公里`
+}
 </script>
 
 <style scoped>
@@ -78,7 +89,7 @@ defineEmits(['choose', 'remove', 'add'])
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
 }
 
@@ -88,7 +99,7 @@ defineEmits(['choose', 'remove', 'add'])
   border-radius: 18px;
   padding: 16px 16px 18px;
   cursor: pointer;
-  min-height: 150px;
+  min-height: 170px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -134,16 +145,23 @@ h3 {
   font-weight: 400;
 }
 
-p {
+.hits,
+.note {
   margin: 0;
   color: #6f6254;
   font-size: 13px;
   line-height: 1.5;
 }
 
-.recipe {
+.hits {
   flex: 1;
-  white-space: pre-wrap;
+}
+
+.meta {
+  display: flex;
+  gap: 12px;
+  color: #d4532b;
+  font-size: 13px;
 }
 
 em {

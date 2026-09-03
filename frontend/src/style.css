@@ -191,13 +191,23 @@ h1 {
 }
 
 .sheet input,
-.sheet select {
+.sheet select,
+.sheet textarea {
   border: 1px solid #eadfcb;
   border-radius: 12px;
   padding: 10px 12px;
   font: inherit;
   background: #fff;
   color: #1f1a16;
+}
+
+.sheet.wide {
+  width: min(520px, 100%);
+}
+
+.sheet textarea {
+  resize: vertical;
+  min-height: 88px;
 }
 
 .sheet .row {
