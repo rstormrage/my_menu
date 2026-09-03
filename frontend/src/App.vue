@@ -1,5 +1,6 @@
 <template>
-  <div class="app-shell">
+  <LoginGate v-if="!unlocked" @unlocked="onUnlocked" />
+  <div v-else class="app-shell">
     <Sidebar
       :categories="categories"
       :selected-id="selectedCategoryId"
@@ -62,13 +63,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { api } from './api.js'
+import { clearToken, isUnlocked } from './auth.js'
 import Sidebar from './components/Sidebar.vue'
 import DishPanel from './components/DishPanel.vue'
 import AddDishModal from './components/AddDishModal.vue'
 import AddCategoryModal from './components/AddCategoryModal.vue'
+import LoginGate from './components/LoginGate.vue'
 
+const unlocked = ref(isUnlocked())
 const categories = ref([])
 const dishes = ref([])
 const today = ref(null)
@@ -96,6 +100,11 @@ async function loadAll() {
     dishes.value = dishList
     today.value = pick
   } catch (err) {
+    if (err.message === '请先登录') {
+      clearToken()
+      unlocked.value = false
+      return
+    }
     error.value = err.message
   } finally {
     loading.value = false
@@ -163,5 +172,12 @@ async function removeCategory(cat) {
   await loadAll()
 }
 
-onMounted(loadAll)
+function onUnlocked() {
+  unlocked.value = true
+  loadAll()
+}
+
+if (unlocked.value) {
+  loadAll()
+}
 </script>

@@ -2,6 +2,13 @@ import express from 'express'
 import cors from 'cors'
 import { query } from './db.js'
 import { seedCategories, seedDishes } from './seed.js'
+import {
+  hashPassword,
+  passwordMatches,
+  readBearerToken,
+  signToken,
+  verifyToken,
+} from './auth.js'
 
 const app = express()
 const port = Number(process.env.PORT || 3001)
@@ -35,7 +42,20 @@ async function initDb() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (pick_date)
     );
+
+    CREATE TABLE IF NOT EXISTS app_auth (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      password_hash TEXT NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `)
+
+  const { rows: authRows } = await query('SELECT COUNT(*)::int AS count FROM app_auth')
+  if (authRows[0].count === 0) {
+    const hash = await hashPassword(process.env.SITE_PASSWORD || '134679')
+    await query('INSERT INTO app_auth (id, password_hash) VALUES (1, $1)', [hash])
+    console.log('Stored site password hash in database')
+  }
 
   const { rows } = await query('SELECT COUNT(*)::int AS count FROM categories')
   if (rows[0].count === 0) {
@@ -82,6 +102,28 @@ app.get('/api/health', async (_req, res) => {
     res.status(500).json({ ok: false, error: err.message })
   }
 })
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const password = String(req.body?.password || '')
+    const { rows } = await query('SELECT password_hash FROM app_auth WHERE id = 1')
+    if (!rows[0] || !(await passwordMatches(password, rows[0].password_hash))) {
+      return res.status(401).json({ error: '密码不对' })
+    }
+    res.json({ token: signToken() })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+function requireAuth(req, res, next) {
+  if (!verifyToken(readBearerToken(req))) {
+    return res.status(401).json({ error: '请先登录' })
+  }
+  next()
+}
+
+app.use('/api', requireAuth)
 
 app.get('/api/categories', async (_req, res) => {
   const { rows } = await query(`

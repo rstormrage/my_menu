@@ -111,6 +111,11 @@ function savePick(dishId, source) {
 }
 
 export const localApi = {
+  login() {
+    return Promise.reject(
+      new Error('GitHub Pages 不能直连数据库。请用 npm run dev 启动后端，或给前端配置可访问的 API 地址。'),
+    )
+  },
   categories() {
     const db = load()
     return Promise.resolve(

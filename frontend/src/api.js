@@ -1,13 +1,22 @@
+import { clearToken, getToken } from './auth.js'
 import { localApi } from './localApi.js'
 
 async function request(path, options = {}) {
   const base = import.meta.env.VITE_API_BASE || ''
+  const token = getToken()
   const res = await fetch(`${base}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   })
   const data = await res.json().catch(() => null)
+  if (res.status === 401 && path !== '/api/login') {
+    clearToken()
+  }
   if (!res.ok) {
     throw new Error(data?.error || '请求失败')
   }
@@ -15,6 +24,7 @@ async function request(path, options = {}) {
 }
 
 const remoteApi = {
+  login: (password) => request('/api/login', { method: 'POST', body: { password } }),
   categories: () => request('/api/categories'),
   addCategory: (body) => request('/api/categories', { method: 'POST', body }),
   deleteCategory: (id) => request(`/api/categories/${id}`, { method: 'DELETE' }),
