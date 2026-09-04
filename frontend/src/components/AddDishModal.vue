@@ -54,13 +54,13 @@ async function save() {
   error.value = ''
   saving.value = true
   try {
-    await api.addDish({
+    const row = await api.addDish({
       name: name.value,
       note: note.value,
       recipe: recipe.value,
       category_id: Number(categoryId.value),
     })
-    emit('saved')
+    emit('saved', row)
   } catch (err) {
     error.value = err.message
   } finally {

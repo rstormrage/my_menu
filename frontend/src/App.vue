@@ -59,7 +59,7 @@
 
       <RestaurantPanel
         v-if="mode === 'out'"
-        :restaurants="restaurants"
+        :restaurants="visibleRestaurants"
         :today-id="today?.restaurant_id"
         :category="selectedCategory"
         @choose="chooseRestaurant"
@@ -68,7 +68,7 @@
       />
       <DishPanel
         v-else
-        :dishes="dishes"
+        :dishes="visibleDishes"
         :today-id="today?.dish_id"
         :category="selectedCategory"
         @choose="chooseDish"
@@ -115,10 +115,12 @@ import ModeSelect from './components/ModeSelect.vue'
 
 const unlocked = ref(isUnlocked())
 const mode = ref(null)
-const categories = ref([])
-const dishes = ref([])
-const restaurants = ref([])
-const today = ref(null)
+const homeCategories = ref([])
+const outCategories = ref([])
+const allDishes = ref([])
+const allRestaurants = ref([])
+const todayHome = ref(null)
+const todayOut = ref(null)
 const selectedCategoryId = ref(null)
 const loading = ref(false)
 const spinning = ref(false)
@@ -126,22 +128,38 @@ const error = ref('')
 const showAddDish = ref(false)
 const showAddRestaurant = ref(false)
 const showAddCategory = ref(false)
+const catalogLoaded = ref(false)
+let catalogPromise = null
+
+const categories = computed(() =>
+  mode.value === 'out' ? outCategories.value : homeCategories.value,
+)
 
 const selectedCategory = computed(
   () => categories.value.find((c) => c.id === selectedCategoryId.value) || null,
 )
 
+const visibleDishes = computed(() => {
+  const list = allDishes.value
+  if (!selectedCategoryId.value) return list
+  return list.filter((d) => Number(d.category_id) === Number(selectedCategoryId.value))
+})
+
+const visibleRestaurants = computed(() => {
+  const list = allRestaurants.value
+  if (!selectedCategoryId.value) return list
+  return list.filter((r) => Number(r.category_id) === Number(selectedCategoryId.value))
+})
+
+const today = computed(() => (mode.value === 'out' ? todayOut.value : todayHome.value))
+
 const hasItems = computed(() =>
-  mode.value === 'out' ? restaurants.value.length > 0 : dishes.value.length > 0,
+  mode.value === 'out' ? visibleRestaurants.value.length > 0 : visibleDishes.value.length > 0,
 )
 
 const randomLabel = computed(() => {
-  if (selectedCategory.value) {
-    return mode.value === 'out'
-      ? `在「${selectedCategory.value.name}」里随机`
-      : `在「${selectedCategory.value.name}」里随机`
-  }
-  return mode.value === 'out' ? '全部随机' : '全部随机'
+  if (selectedCategory.value) return `在「${selectedCategory.value.name}」里随机`
+  return '全部随机'
 })
 
 function formatDistance(value) {
@@ -156,72 +174,73 @@ function openAddItem() {
   else showAddDish.value = true
 }
 
-async function loadAll() {
-  if (!mode.value) return
-  loading.value = true
+function handleAuthError(err) {
+  if (err.message === '请先登录') {
+    clearToken()
+    unlocked.value = false
+    mode.value = null
+    catalogLoaded.value = false
+    return true
+  }
+  return false
+}
+
+async function fetchCatalog({ silent = false } = {}) {
+  if (!silent) loading.value = true
   error.value = ''
-  selectedCategoryId.value = null
-  categories.value = []
-  dishes.value = []
-  restaurants.value = []
-  today.value = null
+  const request = Promise.all([
+    api.categories('home'),
+    api.categories('out'),
+    api.dishes(),
+    api.restaurants(),
+    api.today('home'),
+    api.today('out'),
+  ])
+  catalogPromise = request
   try {
-    const [cats, items, pick] = await Promise.all([
-      api.categories(mode.value),
-      mode.value === 'out' ? api.restaurants() : api.dishes(),
-      api.today(mode.value),
-    ])
-    categories.value = cats
-    if (mode.value === 'out') {
-      restaurants.value = items
-      dishes.value = []
-    } else {
-      dishes.value = items
-      restaurants.value = []
-    }
-    today.value = pick
+    const [homeCats, outCats, dishes, restaurants, homePick, outPick] = await request
+    homeCategories.value = homeCats
+    outCategories.value = outCats
+    allDishes.value = dishes
+    allRestaurants.value = restaurants
+    todayHome.value = homePick
+    todayOut.value = outPick
+    catalogLoaded.value = true
   } catch (err) {
-    if (err.message === '请先登录') {
-      clearToken()
-      unlocked.value = false
-      mode.value = null
-      return
-    }
+    if (handleAuthError(err)) return
     error.value = err.message
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
+    if (catalogPromise === request) catalogPromise = null
   }
 }
 
-async function loadItems() {
-  if (mode.value === 'out') {
-    restaurants.value = await api.restaurants(selectedCategoryId.value)
-  } else {
-    dishes.value = await api.dishes(selectedCategoryId.value)
-  }
+function loadCatalog() {
+  if (catalogLoaded.value) return
+  if (catalogPromise) return catalogPromise
+  return fetchCatalog()
 }
 
-async function loadCategories() {
-  categories.value = await api.categories(mode.value)
+function refreshCatalog() {
+  return fetchCatalog({ silent: true })
 }
 
 function selectMode(nextMode) {
   mode.value = nextMode
-  loadAll()
+  selectedCategoryId.value = null
+  if (!catalogLoaded.value) loadCatalog()
 }
 
 function selectCategory(id) {
   selectedCategoryId.value = id
-  loadItems().catch((err) => {
-    error.value = err.message
-  })
 }
 
 async function chooseDish(dish) {
   error.value = ''
   try {
-    today.value = await api.pickToday({ mode: 'home', dish_id: dish.id })
+    todayHome.value = await api.pickToday({ mode: 'home', dish_id: dish.id })
   } catch (err) {
+    if (handleAuthError(err)) return
     error.value = err.message
   }
 }
@@ -229,22 +248,30 @@ async function chooseDish(dish) {
 async function chooseRestaurant(shop) {
   error.value = ''
   try {
-    today.value = await api.pickToday({ mode: 'out', restaurant_id: shop.id })
+    todayOut.value = await api.pickToday({ mode: 'out', restaurant_id: shop.id })
   } catch (err) {
+    if (handleAuthError(err)) return
     error.value = err.message
   }
 }
 
 async function randomPick() {
   error.value = ''
+  const pool = mode.value === 'out' ? visibleRestaurants.value : visibleDishes.value
+  if (!pool.length) return
   spinning.value = true
   try {
-    today.value = await api.randomToday({
-      mode: mode.value,
-      category_id: selectedCategoryId.value,
-    })
+    const item = pool[Math.floor(Math.random() * pool.length)]
+    if (mode.value === 'out') {
+      const pick = await api.pickToday({ mode: 'out', restaurant_id: item.id })
+      todayOut.value = { ...pick, source: 'random' }
+    } else {
+      const pick = await api.pickToday({ mode: 'home', dish_id: item.id })
+      todayHome.value = { ...pick, source: 'random' }
+    }
     await new Promise((r) => setTimeout(r, 420))
   } catch (err) {
+    if (handleAuthError(err)) return
     error.value = err.message
   } finally {
     spinning.value = false
@@ -253,42 +280,62 @@ async function randomPick() {
 
 async function onDishAdded() {
   showAddDish.value = false
-  await Promise.all([loadItems(), loadCategories()])
+  await refreshCatalog()
 }
 
 async function onRestaurantAdded() {
   showAddRestaurant.value = false
-  await Promise.all([loadItems(), loadCategories()])
+  await refreshCatalog()
 }
 
 async function onCategoryAdded() {
   showAddCategory.value = false
-  await loadCategories()
+  await refreshCatalog()
 }
 
 async function removeDish(dish) {
   if (!confirm(`删除「${dish.name}」？`)) return
-  await api.deleteDish(dish.id)
-  if (today.value?.dish_id === dish.id) today.value = null
-  await Promise.all([loadItems(), loadCategories()])
+  try {
+    await api.deleteDish(dish.id)
+    if (todayHome.value?.dish_id === dish.id) todayHome.value = null
+    await refreshCatalog()
+  } catch (err) {
+    if (handleAuthError(err)) return
+    error.value = err.message
+  }
 }
 
 async function removeRestaurant(shop) {
   if (!confirm(`删除馆子「${shop.name}」？`)) return
-  await api.deleteRestaurant(shop.id)
-  if (today.value?.restaurant_id === shop.id) today.value = null
-  await Promise.all([loadItems(), loadCategories()])
+  try {
+    await api.deleteRestaurant(shop.id)
+    if (todayOut.value?.restaurant_id === shop.id) todayOut.value = null
+    await refreshCatalog()
+  } catch (err) {
+    if (handleAuthError(err)) return
+    error.value = err.message
+  }
 }
 
 async function removeCategory(cat) {
   const label = mode.value === 'out' ? '及其中全部馆子' : '及其中全部菜品'
   if (!confirm(`删除分类「${cat.name}」${label}？`)) return
-  await api.deleteCategory(cat.id)
-  if (selectedCategoryId.value === cat.id) selectedCategoryId.value = null
-  await loadAll()
+  try {
+    await api.deleteCategory(cat.id)
+    if (selectedCategoryId.value === cat.id) selectedCategoryId.value = null
+    await refreshCatalog()
+  } catch (err) {
+    if (handleAuthError(err)) return
+    error.value = err.message
+  }
 }
 
 function onUnlocked() {
   unlocked.value = true
+  loadCatalog()
+}
+
+if (unlocked.value) {
+  loadCatalog()
 }
 </script>

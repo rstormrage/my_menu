@@ -36,8 +36,8 @@ async function save() {
   error.value = ''
   saving.value = true
   try {
-    await api.addCategory({ name: name.value, emoji: emoji.value, kind: props.kind })
-    emit('saved')
+    const row = await api.addCategory({ name: name.value, emoji: emoji.value, kind: props.kind })
+    emit('saved', row)
   } catch (err) {
     error.value = err.message
   } finally {

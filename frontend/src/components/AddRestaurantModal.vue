@@ -66,7 +66,7 @@ async function save() {
   error.value = ''
   saving.value = true
   try {
-    await api.addRestaurant({
+    const row = await api.addRestaurant({
       name: name.value,
       hits: hits.value,
       note: note.value,
@@ -74,7 +74,7 @@ async function save() {
       distance_km: Number(distanceKm.value),
       cost: Number(cost.value),
     })
-    emit('saved')
+    emit('saved', row)
   } catch (err) {
     error.value = err.message
   } finally {
