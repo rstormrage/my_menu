@@ -1,10 +1,9 @@
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-// GitHub Pages 项目站地址是 https://<user>.github.io/my_menu/
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   plugins: [vue()],
-  base: command === 'build' ? '/my_menu/' : '/',
+  base: '/',
   server: {
     port: 5173,
     proxy: {
@@ -14,4 +13,4 @@ export default defineConfig(({ command }) => ({
   preview: {
     port: 4173,
   },
-}))
+})

@@ -13,10 +13,24 @@ services:
       - key: NODE_VERSION
         value: "22"
       - key: CORS_ORIGIN
-        value: https://rstormrage.github.io
+        value: "*"
       - key: DATABASE_URL
         sync: false
       - key: SITE_PASSWORD
         sync: false
       - key: SITE_TOKEN_SECRET
         sync: false
+
+  - type: web
+    name: my-menu
+    runtime: static
+    plan: free
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE
+        value: https://my-menu-api-kxl2.onrender.com

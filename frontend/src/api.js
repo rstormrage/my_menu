@@ -1,5 +1,4 @@
 import { clearToken, getToken } from './auth.js'
-import { localApi } from './localApi.js'
 
 async function request(path, options = {}) {
   const base = import.meta.env.VITE_API_BASE || ''
@@ -23,7 +22,7 @@ async function request(path, options = {}) {
   return data
 }
 
-const remoteApi = {
+export const api = {
   login: (password) => request('/api/login', { method: 'POST', body: { password } }),
   categories: (kind = 'home') => request(`/api/categories?kind=${kind}`),
   addCategory: (body) => request('/api/categories', { method: 'POST', body }),
@@ -40,18 +39,3 @@ const remoteApi = {
   pickToday: (body) => request('/api/today', { method: 'POST', body }),
   randomToday: (body) => request('/api/today/random', { method: 'POST', body }),
 }
-
-function useLocalStorage() {
-  if (import.meta.env.VITE_API_BASE) return false
-  if (import.meta.env.DEV) return false
-  return true
-}
-
-export const api = new Proxy(
-  {},
-  {
-    get(_target, key) {
-      return (useLocalStorage() ? localApi : remoteApi)[key]
-    },
-  },
-)

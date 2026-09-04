@@ -17,9 +17,8 @@ import {
 
 const app = express()
 const port = Number(process.env.PORT || 3001)
-const corsOrigins = String(
-  process.env.CORS_ORIGIN || 'https://rstormrage.github.io,http://localhost:5173',
-)
+const corsOriginEnv = String(process.env.CORS_ORIGIN || '*').trim()
+const corsOrigins = corsOriginEnv
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
@@ -27,7 +26,7 @@ const corsOrigins = String(
 app.set('trust proxy', 1)
 app.use(
   cors({
-    origin: corsOrigins,
+    origin: corsOrigins.includes('*') ? true : corsOrigins,
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 )
