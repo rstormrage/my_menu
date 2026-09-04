@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: my-menu-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: CORS_ORIGIN
+        value: https://rstormrage.github.io
+      - key: DATABASE_URL
+        sync: false
+      - key: SITE_PASSWORD
+        sync: false
+      - key: SITE_TOKEN_SECRET
+        sync: false

@@ -17,8 +17,20 @@ import {
 
 const app = express()
 const port = Number(process.env.PORT || 3001)
+const corsOrigins = String(
+  process.env.CORS_ORIGIN || 'https://rstormrage.github.io,http://localhost:5173',
+)
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
 
-app.use(cors())
+app.set('trust proxy', 1)
+app.use(
+  cors({
+    origin: corsOrigins,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+)
 app.use(express.json())
 
 function normalizeKind(value) {
@@ -483,8 +495,8 @@ app.post('/api/today/random', async (req, res) => {
 
 initDb()
   .then(() => {
-    app.listen(port, () => {
-      console.log(`Menu API listening on http://localhost:${port}`)
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`Menu API listening on port ${port}`)
     })
   })
   .catch((err) => {
